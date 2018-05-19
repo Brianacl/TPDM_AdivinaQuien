@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
     EditText lblRespuesta;
     ConexionWeb conexionWeb;
     CountDownTimer miTimer, timerVerificarTurno;
-    String respuesta="", ID="1", njuego="";
+    String respuesta="", ID="2", njuego="";
     TextView lblTurno;
     boolean miTurno = false;
 

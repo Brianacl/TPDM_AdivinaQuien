@@ -1,10 +1,12 @@
 package mx.edu.ittepic.tpdm_mini_u4_adivinaquien;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
+import android.view.View;
 
 public class Botones {
     private Bitmap btn;
@@ -12,13 +14,16 @@ public class Botones {
 
     private int left, top;
     private String texto;
+    private Bitmap temporal;
+    private View puntero;
+    private int imagen;
 
-    public Botones(Bitmap boton, int x, int y, String texto){
+    public Botones(Bitmap boton, String texto, View view, int imagen){
         btn = boton;
         pincel = new Paint();
-        this.left = x;
-        this.top = y;
         this.texto = texto;
+        puntero = view;
+        this.imagen = imagen;
     }//Fin constructor
 
     public void dibujar(Canvas c) {
@@ -42,4 +47,26 @@ public class Botones {
         }
         return false;
     }//Fin estaEnArea
+
+    public void pasarCoordenadas(int x, int y){
+        this.left = x;
+        this.top = y;
+    }
+
+    public int getLargo(){
+        return btn.getWidth();
+    }
+
+    public int getAncho(){
+        return btn.getHeight();
+    }
+
+    public void cambiarColor(boolean cambio){
+        if(cambio) {
+            temporal = btn;
+            btn = BitmapFactory.decodeResource(puntero.getResources(), imagen);
+        }
+        else
+            btn = temporal;
+    }
 }//Fin clase

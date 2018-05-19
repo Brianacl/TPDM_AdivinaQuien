@@ -1,15 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/fondo1"
+    android:padding="30dp"
     tools:context="mx.edu.ittepic.tpdm_mini_u4_adivinaquien.MainActivity">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/salida"
-         />
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="351dp"
+        android:layout_gravity="center"
+        app:srcCompat="@drawable/portada" />
 
-</android.support.constraint.ConstraintLayout>
+    <EditText
+        android:id="@+id/txtUsuario"
+        android:layout_width="900dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:layout_gravity="center"
+        android:background="@drawable/estilo_edit_text"
+        android:hint="Usuario"
+        android:padding="15dp"
+        android:textAlignment="center"
+        android:textColorHint="#FFFFFF"
+        android:textSize="50dp" />
+
+    <EditText
+        android:layout_width="900dp"
+        android:paddingTop="1000dp"
+        android:layout_gravity="center"
+        android:layout_height="wrap_content"
+        android:hint="Contraseña"
+        android:textAlignment="center"
+        android:textColorHint="#FFFFFF"
+        android:padding="15dp"
+        android:textSize="50dp"
+        android:layout_margin="5dp"
+        android:inputType="textPassword"
+        android:id="@+id/txtContrasena"
+        android:background="@drawable/estilo_edit_text"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center">
+    <Button
+        android:id="@+id/btnIngresar"
+        android:layout_width="650dp"
+        android:layout_gravity="center"
+        android:layout_height="wrap_content"
+        android:text="INGRESAR"
+        android:textColor="#000"
+        android:layout_margin="10dp"
+        android:textSize="20sp"/>
+
+        <Button
+            android:id="@+id/btnRegistrar"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:text="REGISTRARSE"
+            android:layout_gravity="center"
+            android:textColor="#000"
+            android:layout_margin="10dp"
+            android:textSize="20sp"/>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_centerInParent="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="TPDM"
+                android:textColor="#ffffff"
+                android:textAlignment="center"
+                android:textSize="40sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="||"
+                android:textColor="#ffffff"
+                android:textAlignment="center"
+                android:paddingRight="10dp"
+                android:paddingLeft="10dp"
+                android:textSize="40sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Unidad 4"
+                android:textColor="#ffffff"
+                android:textAlignment="center"
+                android:textSize="40sp"/>
+        </LinearLayout>
+    </RelativeLayout>
+
+</LinearLayout>
