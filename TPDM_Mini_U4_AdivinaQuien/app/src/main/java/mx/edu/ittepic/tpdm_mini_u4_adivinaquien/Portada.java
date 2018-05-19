@@ -18,7 +18,7 @@ import java.util.Timer;
 
 public class Portada extends View{
 
-    private Bitmap logoAdivinaQuien, comenzar, preguntar;
+    private Bitmap logoAdivinaQuien, comenzar, preguntar, adorno;
     private Botones btnComenzar;
     private Botones btnPreguntar;
     private Context context;
@@ -62,6 +62,7 @@ public class Portada extends View{
     public Portada(Context context, String datosUsuario[], MainActivity punteroMain){
         super(context);
 
+        adorno = BitmapFactory.decodeResource(getResources(), R.drawable.adorno);
         preguntar = BitmapFactory.decodeResource(getResources(), R.drawable.btnpreguntar);
         btnPreguntar = new Botones(preguntar, "Preguntar", this, R.drawable.btnpreguntar1);
 
@@ -90,6 +91,10 @@ public class Portada extends View{
         c.drawText(avance, c.getWidth() - c.getWidth()/2 - c.getWidth()/7, c.getHeight() - c.getHeight()/9, paintAviso);
 
         c.drawBitmap(logoAdivinaQuien, c.getWidth() / 4, c.getHeight() / 4, new Paint());
+        c.drawBitmap(adorno, 200,200, paint);
+        c.drawBitmap(adorno, c.getWidth() - adorno.getWidth() - c.getWidth()/10,200, paint);
+        c.drawBitmap(adorno, 200,c.getHeight() - adorno.getHeight() - c.getHeight()/10, paint);
+        c.drawBitmap(adorno, c.getWidth() - adorno.getWidth() - c.getWidth()/10,c.getHeight() - adorno.getHeight() - c.getHeight()/10, paint);
 
         if(seEncontroPartida){
             lienzo = new Lienzo(context, datosUsuario, punteroMain, cargarPersonajes(), miPersonaje());
