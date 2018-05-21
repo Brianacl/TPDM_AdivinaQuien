@@ -24,6 +24,7 @@
         android:background="@drawable/estilo_edit_text"
         android:hint="Usuario"
         android:padding="15dp"
+        android:textColor="#fff"
         android:textAlignment="center"
         android:textColorHint="#FFFFFF"
         android:textSize="50dp" />
@@ -38,6 +39,7 @@
         android:textColorHint="#FFFFFF"
         android:padding="15dp"
         android:textSize="50dp"
+        android:textColor="#fff"
         android:layout_margin="5dp"
         android:inputType="textPassword"
         android:id="@+id/txtContrasena"

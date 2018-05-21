@@ -1,5 +1,6 @@
 package mx.edu.ittepic.tpdm_mini_u4_adivinaquien;
 
+import android.content.DialogInterface;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.CountDownTimer;
@@ -32,9 +33,10 @@ public class MainActivity extends AppCompatActivity {
     private boolean miTurno;
     private String njuego;
     private Portada portada;
-    private AlertDialog.Builder alertaPreguntas, alertaververRespuesta, alertaResponder;
+    private AlertDialog.Builder alertaPreguntas, alertaverRespuesta, alertaResponder;
     private Button btnPreguntas[];
     private String []preguntas;
+    private boolean vaAContestar = false;
 
     int i;
 
@@ -52,7 +54,21 @@ public class MainActivity extends AppCompatActivity {
 
         alerta = new AlertDialog.Builder(this);
         alertaResponder = new AlertDialog.Builder(this);
-        alertaververRespuesta = new AlertDialog.Builder(this);
+        alertaverRespuesta = new AlertDialog.Builder(this);
+
+        alertaResponder.setPositiveButton("Si", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                enviarRespuesta("Si");
+            }
+        });
+
+        alertaResponder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                enviarRespuesta("No");
+            }
+        });
 
         respuesta="";
 
@@ -110,12 +126,20 @@ public class MainActivity extends AppCompatActivity {
             //Ejecución
             URL direccion = new URL("https://tpdm-brian.000webhostapp.com/AdivinaQuien/enviarpregunta.php");
             conexionWeb.execute(direccion);
+
+            cambiarTurno();
         } catch (MalformedURLException malformed) {
             Toast.makeText(MainActivity.this, "No se pudo contectar con el servidor", Toast.LENGTH_LONG).show();
         }
     }
 
     public void mostrarPreguntas(){
+        if(!miTurno){
+            AlertDialog.Builder noTurno = new AlertDialog.Builder(this);
+            noTurno.setTitle("Espera tu turno!").show();
+            return;
+        }
+        pasarPreguntasBoton();
         alertaPreguntas.setTitle("Preguntas disponibles: ").show();
     }
 
@@ -168,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(respuesta.length()>2 && respuesta.substring(2).equals("TURNO")){
+            miTurno = true;
             portada.miTurno(true);
             njuego= respuesta.substring(0, 1);
             //Log.v("NJUEGO", njuego);
@@ -175,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(respuesta.length()>2 && respuesta.substring(2).equals("ESPERA")){
+            miTurno = false;
             portada.miTurno(false);
             njuego= respuesta.substring(0, 1);
             //Log.v("NJUEGO", njuego);
@@ -197,12 +223,36 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        if(respuesta.length() > 10 && respuesta.substring(0,9).equals("RESPUESTA")){
+            String []contestacion = respuesta.split("-");
+            alertaverRespuesta.setTitle("RESPUESTA A: ").setMessage(contestacion[1]+" || "+contestacion[2]);
+        }
+
+        if(respuesta.equals("NO_RESPUSTA")){
+            //Poner en falso iluminación de boton
+            alertaverRespuesta.setTitle("Ups").setMessage("Tu oponente no ha contestado aún");
+        }
+
+        if(respuesta.length() > 7 && respuesta.substring(0, 8).equals("PREGUNTA")){
+            String []deboContestar = respuesta.split("-");
+            alertaResponder.setTitle("CONTESTA! ").setMessage(deboContestar[1]);
+            vaAContestar = true;
+        }
+
+        if(respuesta.equals("NO_PREGUNTAS")){
+            //Poner en falso iluminación de boton
+            alertaResponder.setTitle("ESPERA!").setMessage("Tu oponente no ha preguntado aún");
+            vaAContestar = false;
+        }
+
         Log.v("RESPUESTA", respuesta);
         if(respuesta.length() > 6 && respuesta.substring(0, 6).equals("ACCESO")) {
             datosUsuario = respuesta.split("-");
             Toast.makeText(this, "LE DAMOS LA BIEVENIDA! " + datosUsuario[2], Toast.LENGTH_SHORT).show();
             portada = new Portada(this, datosUsuario, this);
             setContentView(portada);
+            solicitarRespuestasServidor();
+            solicitarPreguntasParaMi();
             return;
         }
     }//Fin procesar respuesta
@@ -212,6 +262,7 @@ public class MainActivity extends AppCompatActivity {
         btnPreguntas = new Button[preguntas.length];
 
         alertaPreguntas = new AlertDialog.Builder(this);
+        alertaPreguntas.setPositiveButton("OK", null);
         recuperarPreguntas();
 
         for(i=0 ; i < btnPreguntas.length; i++) {
@@ -237,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
 
         scrollView.addView(ll);
         alertaPreguntas.setView(scrollView);
-    }
+    }//Fin pasarPreguntasBoton
 
     public void buscarPartida(){
         try {
@@ -290,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
             }//Fin de onFinish
         };
         miTimer.start();
-    }
+    }//Fin buscarOponente
 
     protected void traerDatos(){
 
@@ -371,6 +422,12 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void resolver(int identificador){
+        if(!miTurno){
+            AlertDialog.Builder noTurno = new AlertDialog.Builder(this);
+            noTurno.setTitle("Espera tu turno!").show();
+            return;
+        }
+
         try {
             conexionWeb = new ConexionWeb(MainActivity.this);
             //conexionWeb.agregarVariables("NJUEGO", datosUsuario[1]);
@@ -382,16 +439,116 @@ public class MainActivity extends AppCompatActivity {
             URL direccion = new URL("https://tpdm-brian.000webhostapp.com/AdivinaQuien/resolver.php");
             conexionWeb.execute(direccion);
 
+            cambiarTurno();
+
         }catch (MalformedURLException malformed) {
             Toast.makeText(MainActivity.this, "No se pudo contectar con el servidor", Toast.LENGTH_LONG).show();
         }
-    }
+    }//Fin de resolver
 
-    public void contestar(){
-        alertaResponder.setTitle("PREGUNTA").show();
-    }
+    public void puedoContestar(){
+        try {
+            conexionWeb = new ConexionWeb(MainActivity.this);
+            conexionWeb.agregarVariables("IDJUGADOR", datosUsuario[1]);
+            conexionWeb.agregarVariables("NJUEGO", njuego);
+
+
+            //Ejecución
+            URL direccion = new URL("https://tpdm-brian.000webhostapp.com/AdivinaQuien/verpreguntasparami.php");
+            conexionWeb.execute(direccion);
+
+        }catch (MalformedURLException malformed) {
+            Toast.makeText(MainActivity.this, "No se pudo contectar con el servidor", Toast.LENGTH_LONG).show();
+        }
+    }//Fin de puedoContestar
+
+    private void solicitarPreguntasParaMi(){
+        CountDownTimer yaContesto = new CountDownTimer(10000, 1000) {
+            @Override
+            public void onTick(long l) {
+                puedoContestar();
+            }
+
+            @Override
+            public void onFinish() {
+                solicitarPreguntasParaMi();
+            }
+        };
+        yaContesto.start();
+    }//Fin solicitarRespuestaServidor
+
+    public void contestarPregunta(){
+        if(vaAContestar)
+            alertaResponder.show();
+        else
+            Toast.makeText(this, "Espera, tu oponente aún no hace una pregunta.", Toast.LENGTH_LONG).show();
+    }//Fin de contestar
+
+    public void hayPregunta(){
+        try {
+            conexionWeb = new ConexionWeb(MainActivity.this);
+            //conexionWeb.agregarVariables("NJUEGO", datosUsuario[1]);
+            conexionWeb.agregarVariables("IDJUGADOR", datosUsuario[1]);
+            conexionWeb.agregarVariables("NJUEGO", njuego);
+
+
+            //Ejecución
+            URL direccion = new URL("https://tpdm-brian.000webhostapp.com/AdivinaQuien/preguntaContestada.php");
+            conexionWeb.execute(direccion);
+
+        }catch (MalformedURLException malformed) {
+        Toast.makeText(MainActivity.this, "No se pudo contectar con el servidor", Toast.LENGTH_LONG).show();
+        }
+    }//Fin de hayPregunta
 
     public void verRespuesta(){
-        alertaververRespuesta.setTitle("RESPUESTA").show();
+        alertaverRespuesta.setTitle("RESPUESTA").show();
+    }//Fin verRespuesta
+
+    private void solicitarRespuestasServidor(){
+        CountDownTimer yaContesto = new CountDownTimer(10000, 1000) {
+            @Override
+            public void onTick(long l) {
+                hayPregunta();
+            }
+
+            @Override
+            public void onFinish() {
+                solicitarRespuestasServidor();
+            }
+        };
+        yaContesto.start();
+    }//Fin solicitarRespuestaServidor
+
+
+    private void enviarRespuesta(String respuesta){
+        try {
+            conexionWeb = new ConexionWeb(MainActivity.this);
+            conexionWeb.agregarVariables("IDJUGADOR", datosUsuario[1]);
+            conexionWeb.agregarVariables("NJUEGO", njuego);
+            conexionWeb.agregarVariables("RESPUESTA", respuesta);
+
+            //Ejecución
+            URL direccion = new URL("https://tpdm-brian.000webhostapp.com/AdivinaQuien/agregarrespuesta.php");
+            conexionWeb.execute(direccion);
+
+        }catch (MalformedURLException malformed) {
+            Toast.makeText(MainActivity.this, "No se pudo contectar con el servidor", Toast.LENGTH_LONG).show();
+        }
+    }//Fin enviarRespuesta
+
+    private void cambiarTurno(){
+        try {
+            conexionWeb = new ConexionWeb(MainActivity.this);
+            conexionWeb.agregarVariables("IDUSUARIO", datosUsuario[1]);
+            conexionWeb.agregarVariables("NJUEGO", njuego);
+
+            //Ejecución
+            URL direccion = new URL("https://tpdm-brian.000webhostapp.com/AdivinaQuien/cambioTurno.php");
+            conexionWeb.execute(direccion);
+
+        } catch (MalformedURLException malformed) {
+            Toast.makeText(MainActivity.this, "No se pudo contectar con el servidor", Toast.LENGTH_LONG).show();
+        }
     }
 }//Fin MainActivity

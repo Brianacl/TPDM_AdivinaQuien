@@ -17,9 +17,13 @@ public class Lienzo extends View {
     private int maxX, maxY, ximg, yimg;
     boolean voltear, miTurno;
     private int miPersonaje;
+    private boolean indicacion = false;
     //Imagenes
     private Bitmap interrogacion, datosJugador, datosOponente, vs;
     private Bitmap preguntar, resolver, imgMiPersonaje, contestar, verRespuesta;
+    private Bitmap letroMiTurno, letreroEsperaTurno, letreroSeleccion;
+    private Bitmap letreroNoIndicacion;
+    private Bitmap letreroGanador, letreroIncorrecto;
 
     private boolean direccion;
     private boolean preguntara = false, resolvera = true;
@@ -31,9 +35,7 @@ public class Lienzo extends View {
     private Botones btnPreguntar, btnResolver, btnContestar, btnVerRespuesta;
     private Personaje personajes[], apuntaMiPersonaje;
     private MainActivity punteroMain;
-    private String indicacion;
     private boolean ganador = false, error = false;
-    private BotonPregunta btnPreguntas[];
     private Personaje puntero;
 
     public Lienzo(Context context, String[] datos, MainActivity punteroMain,
@@ -43,7 +45,6 @@ public class Lienzo extends View {
         punteroMain.insertarPersonaje(miPersonaje);
         this.miPersonaje = miPersonaje;
         voltear = false;
-        indicacion="";
 
         pincelLienzo = new Paint();
 
@@ -65,6 +66,12 @@ public class Lienzo extends View {
         vs = BitmapFactory.decodeResource(getResources(), R.drawable.vs);
         contestar = BitmapFactory.decodeResource(getResources(), R.drawable.btncontestar);
         verRespuesta = BitmapFactory.decodeResource(getResources(), R.drawable.btnverrespuesta);
+        letroMiTurno = BitmapFactory.decodeResource(getResources(), R.drawable.miturno);
+        letreroEsperaTurno = BitmapFactory.decodeResource(getResources(), R.drawable.esperaturno);
+        letreroSeleccion = BitmapFactory.decodeResource(getResources(), R.drawable.hasseleccion);
+        letreroGanador = BitmapFactory.decodeResource(getResources(), R.drawable.hasganado);
+        letreroIncorrecto = BitmapFactory.decodeResource(getResources(), R.drawable.esincorrecto);
+        letreroNoIndicacion = BitmapFactory.decodeResource(getResources(), R.drawable.noindicacion);
 
         //Inicializacion de clases (no vectores)
         btnPreguntar = new Botones(preguntar, "Preguntar", this, R.drawable.btnpreguntar1);
@@ -168,21 +175,26 @@ public class Lienzo extends View {
             Paint paintTexto = new Paint();
             paintTexto.setTextSize(100);
             if(miTurno){
-                c.drawText("Es tu turno!", 100, 100, paintTexto);
+                c.drawBitmap(letroMiTurno, 100, 0, paintTexto);
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    }
             else {
-                c.drawText("Espera, por favor", 100, 100, paintTexto);
-                c.drawRect(c.getWidth() / 4 + c.getWidth() / 4 + c.getWidth() / 4 + c.getWidth() / 12, 300, c.getWidth(), c.getHeight()/2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           , pincelLienzo);
+                c.drawBitmap(letreroEsperaTurno, 100, 0, paintTexto);
             }
 
-            c.drawText(indicacion, c.getWidth()/2 - c.getWidth()/10, 100, paintTexto);
+            if(indicacion){
+                c.drawBitmap(letreroSeleccion, c.getWidth()/2,0, paintTexto);
+            }else {
+                c.drawBitmap(letreroNoIndicacion, c.getWidth()/2,0, paintTexto);
+            }
+
             if(ganador){
-                indicacion = "HAS GANADO!";
+                //c.drawBitmap();
+                c.drawBitmap(letreroGanador, c.getWidth()/2,0, paintTexto);
             }
 
             if(error){
-                indicacion = "RESPUESTA EQUIVOCADA";
-                error = false;
+                //indicacion = "RESPUESTA EQUIVOCADA";
+                c.drawBitmap(letreroIncorrecto, c.getWidth()/2,0, paintTexto);
             }
         invalidate();
     }//Fin onDraw
@@ -195,25 +207,26 @@ public class Lienzo extends View {
                 voltear=!voltear;
                     if (btnResolver.estaEnArea((int) e.getX(), (int) e.getY())) {
                     //break; cualquiera de las dos opciones está bien
-                        indicacion = "Seleccione su solución";
+                        if(miTurno){
+                            indicacion = true;
+                        }
                         resolvera = true;
                     }
                 if (btnContestar.estaEnArea((int) e.getX(), (int) e.getY())) {
-                    //break; cualquiera de las dos opciones está bien
-                    punteroMain.contestar();
+                        punteroMain.contestarPregunta();
                 }
                 if (btnVerRespuesta.estaEnArea((int) e.getX(), (int) e.getY())) {
-                    //break; cualquiera de las dos opciones está bien
                     punteroMain.verRespuesta();
 
                 }
                     for (int i = 0; i < personajes.length; i++) {
                         if (personajes[i].estaEnArea((int) e.getX(), (int) e.getY())) {
+                            error = false;
                             personajes[i].voltearPersonaje(voltear);
                             if(resolvera) {
                                 puntero = personajes[i];
                                 punteroMain.resolver(puntero.getIdentificador());
-                                indicacion = "";
+                                indicacion = false;
                                 resolvera = false;
                             }
                             i = personajes.length;

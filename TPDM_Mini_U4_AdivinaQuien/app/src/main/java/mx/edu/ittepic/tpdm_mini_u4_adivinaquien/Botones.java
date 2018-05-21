@@ -17,6 +17,7 @@ public class Botones {
     private Bitmap temporal;
     private View puntero;
     private int imagen;
+    private boolean parpadea;
 
     public Botones(Bitmap boton, String texto, View view, int imagen){
         btn = boton;
@@ -68,5 +69,9 @@ public class Botones {
         }
         else
             btn = temporal;
+    }
+
+    public void parpadear(boolean parpadea){
+        this.parpadea = parpadea;
     }
 }//Fin clase
