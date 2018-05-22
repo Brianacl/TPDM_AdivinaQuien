@@ -1,6 +1,7 @@
 package mx.edu.ittepic.tpdm_mini_u4_adivinaquien;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.CountDownTimer;
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private AlertDialog.Builder alertaPreguntas, alertaverRespuesta, alertaResponder;
     private Button btnPreguntas[];
     private String []preguntas;
-    private boolean vaAContestar = false;
+    private boolean vaAContestar = false, yaSeAviso = true;
 
     int i;
 
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
 
+        txtAgregarPregunta = new EditText(this);
         txtUsuario = findViewById(R.id.txtUsuario);
         txtContrasena = findViewById(R.id.txtContrasena);
         btnRegistrar = findViewById(R.id.btnRegistrar);
@@ -136,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
     public void mostrarPreguntas(){
         if(!miTurno){
             AlertDialog.Builder noTurno = new AlertDialog.Builder(this);
-            noTurno.setTitle("Espera tu turno!").show();
+            noTurno.setTitle("Espera tu turno!").setMessage("").show();
             return;
         }
         pasarPreguntasBoton();
@@ -228,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
             alertaverRespuesta.setTitle("RESPUESTA A: ").setMessage(contestacion[1]+" || "+contestacion[2]);
         }
 
-        if(respuesta.equals("NO_RESPUSTA")){
+        if(respuesta.equals("NO_RESPUESTA")){
             //Poner en falso iluminación de boton
             alertaverRespuesta.setTitle("Ups").setMessage("Tu oponente no ha contestado aún");
         }
@@ -245,6 +247,29 @@ public class MainActivity extends AppCompatActivity {
             vaAContestar = false;
         }
 
+        if(respuesta.equals("PERDEDOR")){
+            if(yaSeAviso) {
+                AlertDialog.Builder perdedor = new AlertDialog.Builder(this);
+                perdedor.setTitle("Oh no! Has perdido...");
+                perdedor.setPositiveButton("TERMINAR PARTIDA", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        noEncontroPartida();
+                    }
+                });
+                perdedor.show();
+                yaSeAviso = false;
+            }
+            this.setContentView(portada);
+            detenerTimers();
+        }
+
+        if(respuesta.equals("AGREGO_PREGUNTA")){
+            AlertDialog.Builder confirmacion = new AlertDialog.Builder(this);
+            confirmacion.setTitle("AVISO!").setMessage("Tu pregunta se agregó correctamente").show();
+            return;
+        }
+
         Log.v("RESPUESTA", respuesta);
         if(respuesta.length() > 6 && respuesta.substring(0, 6).equals("ACCESO")) {
             datosUsuario = respuesta.split("-");
@@ -253,6 +278,7 @@ public class MainActivity extends AppCompatActivity {
             setContentView(portada);
             solicitarRespuestasServidor();
             solicitarPreguntasParaMi();
+            yaPerdio();
             return;
         }
     }//Fin procesar respuesta
@@ -359,12 +385,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     protected void checarTurno(){
-                    timerVerificarTurno = new CountDownTimer(30000, 3000) {
-                        @Override
-                        public void onTick(long millisUntilFinished) {
+        timerVerificarTurno = new CountDownTimer(30000, 3000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
                             traerDatos();
                         }
-
                         @Override
                         public void onFinish() {
                             checarTurno();
@@ -424,7 +449,7 @@ public class MainActivity extends AppCompatActivity {
     public void resolver(int identificador){
         if(!miTurno){
             AlertDialog.Builder noTurno = new AlertDialog.Builder(this);
-            noTurno.setTitle("Espera tu turno!").show();
+            noTurno.setTitle("Espera tu turno!").setMessage("").show();
             return;
         }
 
@@ -462,8 +487,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }//Fin de puedoContestar
 
+    CountDownTimer preguntasParaMi;
     private void solicitarPreguntasParaMi(){
-        CountDownTimer yaContesto = new CountDownTimer(10000, 1000) {
+        preguntasParaMi = new CountDownTimer(10000, 1000) {
             @Override
             public void onTick(long l) {
                 puedoContestar();
@@ -474,7 +500,7 @@ public class MainActivity extends AppCompatActivity {
                 solicitarPreguntasParaMi();
             }
         };
-        yaContesto.start();
+        preguntasParaMi.start();
     }//Fin solicitarRespuestaServidor
 
     public void contestarPregunta(){
@@ -505,8 +531,9 @@ public class MainActivity extends AppCompatActivity {
         alertaverRespuesta.setTitle("RESPUESTA").show();
     }//Fin verRespuesta
 
+    CountDownTimer yaContesto;
     private void solicitarRespuestasServidor(){
-        CountDownTimer yaContesto = new CountDownTimer(10000, 1000) {
+        yaContesto = new CountDownTimer(10000, 1000) {
             @Override
             public void onTick(long l) {
                 hayPregunta();
@@ -550,5 +577,103 @@ public class MainActivity extends AppCompatActivity {
         } catch (MalformedURLException malformed) {
             Toast.makeText(MainActivity.this, "No se pudo contectar con el servidor", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private EditText txtAgregarPregunta;
+    public void agregarPregunta(){
+        AlertDialog.Builder agregaPregunta = new AlertDialog.Builder(this);
+        agregaPregunta.setTitle("Puedes agregar una pregunta");
+        agregaPregunta.setView(txtAgregarPregunta);
+        agregaPregunta.setNegativeButton("Cancelar", null);
+        agregaPregunta.setPositiveButton("Agregar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                String pregunta = txtAgregarPregunta.getText().toString();
+                if(pregunta.length() > 2 && !pregunta.substring(0, 1).equals("¿")){
+                    pregunta = "¿" + pregunta;
+                }
+                if(!pregunta.substring(pregunta.length() - 1, pregunta.length()).equals("?"))
+                    pregunta+= "?";
+
+                try {
+                    conexionWeb = new ConexionWeb(MainActivity.this);
+                    conexionWeb.agregarVariables("PREGUNTA", pregunta);
+
+                    //Ejecución
+                    URL direccion = new URL("https://tpdm-brian.000webhostapp.com/AdivinaQuien/agregarPregunta.php");
+                    conexionWeb.execute(direccion);
+
+                } catch (MalformedURLException malformed) {
+                    Toast.makeText(MainActivity.this, "No se pudo contectar con el servidor", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+        agregaPregunta.show();
+    }
+
+    public void tenemosGanador(){
+        AlertDialog.Builder perdedor = new AlertDialog.Builder(this);
+        perdedor.setTitle("Wuuuu FELICIDADES, ERES EL GANADOR!...");
+        perdedor.setPositiveButton("TERMINAR PARTIDA", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                yaGano();
+                noEncontroPartida();
+                Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                startActivity(intent);
+            }
+        });
+        perdedor.show();
+    }//Fin tenemos ganador
+
+    CountDownTimer timerPedio;
+    private void yaPerdio(){
+        timerPedio = new CountDownTimer(20000, 1000) {
+            @Override
+            public void onTick(long l) {
+                try {
+                    conexionWeb = new ConexionWeb(MainActivity.this);
+                    conexionWeb.agregarVariables("IDJUGADOR", datosUsuario[1]);
+                    conexionWeb.agregarVariables("NJUEGO", njuego);
+
+                    //Ejecución
+                    URL direccion = new URL("https://tpdm-brian.000webhostapp.com/AdivinaQuien/ganadorperdedor.php");
+                    conexionWeb.execute(direccion);
+
+                } catch (MalformedURLException malformed) {
+                    Toast.makeText(MainActivity.this, "No se pudo contectar con el servidor", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFinish() {
+                yaPerdio();
+            }
+        };
+        timerPedio.start();
+    }//Fin de yaPerdio
+
+    private void yaGano(){
+        try {
+            conexionWeb = new ConexionWeb(MainActivity.this);
+            conexionWeb.agregarVariables("IDJUGADOR", datosUsuario[1]);
+            conexionWeb.agregarVariables("NJUEGO", njuego);
+
+            //Ejecución
+            URL direccion = new URL("https://tpdm-brian.000webhostapp.com/AdivinaQuien/yaGano.php");
+            conexionWeb.execute(direccion);
+
+            detenerTimers();
+        } catch (MalformedURLException malformed) {
+            Toast.makeText(MainActivity.this, "No se pudo contectar con el servidor", Toast.LENGTH_LONG).show();
+        }
+    }//Fin de yaGano
+
+    private  void detenerTimers(){
+        timerVerificarTurno.cancel();
+        miTimer.cancel();
+        yaContesto.cancel();
+        preguntasParaMi.cancel();
+        timerPedio.cancel();
     }
 }//Fin MainActivity

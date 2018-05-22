@@ -19,6 +19,7 @@ public class Personaje {
     private boolean voltear;
 
     public Personaje(Bitmap boton, int x, int y, String texto, View view, int identificador){
+        voltear = false;
         btn = boton;
         pincel = new Paint();
         this.x = x;
@@ -27,6 +28,10 @@ public class Personaje {
         this.identificador = identificador;
         volteado = BitmapFactory.decodeResource(view.getResources(), R.drawable.volteado);
     }//Fin constructor
+
+    public boolean getVoltear(){
+        return voltear;
+    }
 
     public void dibujar(Canvas c) {
         pincel.setColor(Color.WHITE);
@@ -53,7 +58,6 @@ public class Personaje {
 
         if(xp >= x && xp <= x2){
             if(yp >= y && yp <= y2){
-                Log.v("-->","Está en área!");
                 return true;
             }
         }

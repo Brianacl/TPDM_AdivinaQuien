@@ -1,6 +1,8 @@
 package mx.edu.ittepic.tpdm_mini_u4_adivinaquien;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -11,6 +13,7 @@ import android.graphics.Shader;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 public class Lienzo extends View {
 
@@ -18,21 +21,23 @@ public class Lienzo extends View {
     boolean voltear, miTurno;
     private int miPersonaje;
     private boolean indicacion = false;
+    private String []datos;
+
     //Imagenes
-    private Bitmap interrogacion, datosJugador, datosOponente, vs;
+    private Bitmap interrogacion, datosJugador, datosOponente, vs, agregarPregunta;
     private Bitmap preguntar, resolver, imgMiPersonaje, contestar, verRespuesta;
     private Bitmap letroMiTurno, letreroEsperaTurno, letreroSeleccion;
     private Bitmap letreroNoIndicacion;
     private Bitmap letreroGanador, letreroIncorrecto;
 
     private boolean direccion;
-    private boolean preguntara = false, resolvera = true;
+    private boolean resolvera = true;
     private Paint pincelLienzo;
 
     //Instanciacion de clases
     private Fondo signos[];
     private ComponentesExtra []componentesExtra;
-    private Botones btnPreguntar, btnResolver, btnContestar, btnVerRespuesta;
+    private Botones btnPreguntar, btnResolver, btnContestar, btnVerRespuesta, btnAgregarPregunta;
     private Personaje personajes[], apuntaMiPersonaje;
     private MainActivity punteroMain;
     private boolean ganador = false, error = false;
@@ -42,6 +47,7 @@ public class Lienzo extends View {
                   int []personajesSeleccionados, int miPersonaje){
         super(context);
         this.punteroMain = punteroMain;
+        this.datos = datos;
         punteroMain.insertarPersonaje(miPersonaje);
         this.miPersonaje = miPersonaje;
         voltear = false;
@@ -63,6 +69,7 @@ public class Lienzo extends View {
         datosOponente = BitmapFactory.decodeResource(getResources(), R.drawable.oponente);
         preguntar = BitmapFactory.decodeResource(getResources(), R.drawable.btnpreguntar);
         resolver = BitmapFactory.decodeResource(getResources(), R.drawable.btnresolver);
+        agregarPregunta = BitmapFactory.decodeResource(getResources(), R.drawable.btnagregar);
         vs = BitmapFactory.decodeResource(getResources(), R.drawable.vs);
         contestar = BitmapFactory.decodeResource(getResources(), R.drawable.btncontestar);
         verRespuesta = BitmapFactory.decodeResource(getResources(), R.drawable.btnverrespuesta);
@@ -78,6 +85,7 @@ public class Lienzo extends View {
         btnResolver = new Botones(resolver,"Resolver", this, R.drawable.btnresolver1);
         btnContestar = new Botones(contestar, "Contestar", this, R.drawable.btnresolver1);
         btnVerRespuesta = new Botones(verRespuesta, "Ver resp.", this, R.drawable.btnresolver1);
+        btnAgregarPregunta = new Botones(agregarPregunta, "Agregar", this, R.drawable.btnresolver1);
 
 
         direccion = true;
@@ -158,13 +166,15 @@ public class Lienzo extends View {
 
             btnPreguntar.pasarCoordenadas(2195, 500);
             btnResolver.pasarCoordenadas(2195, 700);
-            btnVerRespuesta.pasarCoordenadas(2195, 1100);
-            btnContestar.pasarCoordenadas(2195, 1300);
+            btnVerRespuesta.pasarCoordenadas(2195, 1050);
+            btnContestar.pasarCoordenadas(2195, 1250);
+            btnAgregarPregunta.pasarCoordenadas(2195, 1450);
 
             btnPreguntar.dibujar(c);
             btnResolver.dibujar(c);
             btnVerRespuesta.dibujar(c);
             btnContestar.dibujar(c);
+            btnAgregarPregunta.dibujar(c);
 
             c.drawBitmap(imgMiPersonaje, 2200,100, paint);
 
@@ -190,6 +200,7 @@ public class Lienzo extends View {
             if(ganador){
                 //c.drawBitmap();
                 c.drawBitmap(letreroGanador, c.getWidth()/2,0, paintTexto);
+                punteroMain.tenemosGanador();
             }
 
             if(error){
@@ -204,16 +215,23 @@ public class Lienzo extends View {
         switch (e.getAction()){
             case MotionEvent.ACTION_DOWN:
                 //programas el estado "PRESIONADO"
-                voltear=!voltear;
                     if (btnResolver.estaEnArea((int) e.getX(), (int) e.getY())) {
                     //break; cualquiera de las dos opciones está bien
                         if(miTurno){
                             indicacion = true;
+                            resolvera = true;
                         }
-                        resolvera = true;
+                        else{
+                            AlertDialog.Builder noTurno = new AlertDialog.Builder(punteroMain);
+                            noTurno.setTitle("Espera tu turno!").setMessage("").show();
+                        }
                     }
                 if (btnContestar.estaEnArea((int) e.getX(), (int) e.getY())) {
                         punteroMain.contestarPregunta();
+                }
+
+                if(btnAgregarPregunta.estaEnArea((int) e.getX(), (int) e.getY())){
+                        punteroMain.agregarPregunta();
                 }
                 if (btnVerRespuesta.estaEnArea((int) e.getX(), (int) e.getY())) {
                     punteroMain.verRespuesta();
@@ -222,7 +240,8 @@ public class Lienzo extends View {
                     for (int i = 0; i < personajes.length; i++) {
                         if (personajes[i].estaEnArea((int) e.getX(), (int) e.getY())) {
                             error = false;
-                            personajes[i].voltearPersonaje(voltear);
+                            puntero = personajes[i];
+                            puntero.voltearPersonaje(!puntero.getVoltear());
                             if(resolvera) {
                                 puntero = personajes[i];
                                 punteroMain.resolver(puntero.getIdentificador());
