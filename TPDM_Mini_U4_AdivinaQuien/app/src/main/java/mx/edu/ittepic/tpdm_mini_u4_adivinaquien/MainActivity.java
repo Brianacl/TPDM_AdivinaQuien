@@ -4,6 +4,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.CountDownTimer;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -248,6 +250,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(respuesta.equals("PERDEDOR")){
+            SoundPool soundPool = new SoundPool( 5, AudioManager.STREAM_MUSIC , 0);
+            int idPerdio = soundPool.load(this, R.raw.perdio, 0);
             if(yaSeAviso) {
                 AlertDialog.Builder perdedor = new AlertDialog.Builder(this);
                 perdedor.setTitle("Oh no! Has perdido...");
@@ -257,10 +261,13 @@ public class MainActivity extends AppCompatActivity {
                         noEncontroPartida();
                     }
                 });
+                soundPool.play(idPerdio, 1, 1, 1, 0, 1);
                 perdedor.show();
                 yaSeAviso = false;
             }
-            this.setContentView(portada);
+            noEncontroPartida();
+            Intent intent = new Intent(MainActivity.this, MainActivity.class);
+            startActivity(intent);
             detenerTimers();
         }
 
@@ -334,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     protected void buscarOponente(){
-        miTimer = new CountDownTimer(60000, 3000) {
+        miTimer = new CountDownTimer(60000, 5000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 if(respuesta.equals("1")){
@@ -385,7 +392,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     protected void checarTurno(){
-        timerVerificarTurno = new CountDownTimer(30000, 3000) {
+        timerVerificarTurno = new CountDownTimer(60000, 5000) {
             @Override
             public void onTick(long millisUntilFinished) {
                             traerDatos();
@@ -446,7 +453,7 @@ public class MainActivity extends AppCompatActivity {
     }//
 
 
-    public void resolver(int identificador){
+    public void resolver(int identificador, int vecesResuleto){
         if(!miTurno){
             AlertDialog.Builder noTurno = new AlertDialog.Builder(this);
             noTurno.setTitle("Espera tu turno!").setMessage("").show();
@@ -458,6 +465,13 @@ public class MainActivity extends AppCompatActivity {
             //conexionWeb.agregarVariables("NJUEGO", datosUsuario[1]);
             conexionWeb.agregarVariables("IDJUGADOR", datosUsuario[1]);
             conexionWeb.agregarVariables("NJUEGO", njuego);
+
+            if(vecesResuleto > 2){
+                //Ejecución
+                URL direccion = new URL("https://tpdm-brian.000webhostapp.com/AdivinaQuien/yaPerdio.php");
+                conexionWeb.execute(direccion);
+                return;
+            }
             conexionWeb.agregarVariables("PERSONAJE", identificador+"");
 
             //Ejecución
@@ -489,7 +503,7 @@ public class MainActivity extends AppCompatActivity {
 
     CountDownTimer preguntasParaMi;
     private void solicitarPreguntasParaMi(){
-        preguntasParaMi = new CountDownTimer(10000, 1000) {
+        preguntasParaMi = new CountDownTimer(60000, 5000) {
             @Override
             public void onTick(long l) {
                 puedoContestar();
@@ -533,7 +547,7 @@ public class MainActivity extends AppCompatActivity {
 
     CountDownTimer yaContesto;
     private void solicitarRespuestasServidor(){
-        yaContesto = new CountDownTimer(10000, 1000) {
+        yaContesto = new CountDownTimer(60000, 5000) {
             @Override
             public void onTick(long l) {
                 hayPregunta();
@@ -628,7 +642,7 @@ public class MainActivity extends AppCompatActivity {
 
     CountDownTimer timerPedio;
     private void yaPerdio(){
-        timerPedio = new CountDownTimer(20000, 1000) {
+        timerPedio = new CountDownTimer(60000, 5000) {
             @Override
             public void onTick(long l) {
                 try {

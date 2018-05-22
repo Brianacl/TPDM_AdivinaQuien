@@ -5,6 +5,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.util.Log;
 import android.view.View;
 
@@ -18,6 +20,9 @@ public class Botones {
     private View puntero;
     private int imagen;
     private boolean parpadea;
+    //Sonido
+    private SoundPool soundPool;
+    private int idPresionarBtn;
 
     public Botones(Bitmap boton, String texto, View view, int imagen){
         btn = boton;
@@ -25,6 +30,8 @@ public class Botones {
         this.texto = texto;
         puntero = view;
         this.imagen = imagen;
+        soundPool = new SoundPool( 5, AudioManager.STREAM_MUSIC , 0);
+        idPresionarBtn = soundPool.load(view.getContext(), R.raw.presionarboton, 0);
     }//Fin constructor
 
     public void dibujar(Canvas c) {
@@ -42,7 +49,7 @@ public class Botones {
 
         if(xp >= left && xp <= x2){
             if(yp >= top && yp <= y2){
-                Log.v("-->","Está en área!");
+                soundPool.play(idPresionarBtn, 1, 1, 1, 0, 1);
                 return true;
             }
         }

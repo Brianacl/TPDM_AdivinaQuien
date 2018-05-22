@@ -5,6 +5,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.util.Log;
 import android.view.View;
 
@@ -15,6 +17,9 @@ public class Personaje {
     private String texto;
     private int x, y;
     private int identificador;
+    //Sonido
+    private SoundPool soundPool;
+    private int idVoltearPersonaje;
 
     private boolean voltear;
 
@@ -27,6 +32,8 @@ public class Personaje {
         this.texto = texto;
         this.identificador = identificador;
         volteado = BitmapFactory.decodeResource(view.getResources(), R.drawable.volteado);
+        soundPool = new SoundPool( 5, AudioManager.STREAM_MUSIC , 0);
+        idVoltearPersonaje = soundPool.load(view.getContext(), R.raw.voltearcarta, 0);
     }//Fin constructor
 
     public boolean getVoltear(){
@@ -58,6 +65,7 @@ public class Personaje {
 
         if(xp >= x && xp <= x2){
             if(yp >= y && yp <= y2){
+                soundPool.play(idVoltearPersonaje, 1, 1, 1, 0, 1);
                 return true;
             }
         }

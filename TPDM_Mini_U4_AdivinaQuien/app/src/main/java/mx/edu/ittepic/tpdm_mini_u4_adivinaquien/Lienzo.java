@@ -10,6 +10,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RadialGradient;
 import android.graphics.Shader;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -23,6 +25,9 @@ public class Lienzo extends View {
     private boolean indicacion = false;
     private String []datos;
 
+    private SoundPool soundPool;
+    private int idGano, idPerdio;
+
     //Imagenes
     private Bitmap interrogacion, datosJugador, datosOponente, vs, agregarPregunta;
     private Bitmap preguntar, resolver, imgMiPersonaje, contestar, verRespuesta;
@@ -33,6 +38,8 @@ public class Lienzo extends View {
     private boolean direccion;
     private boolean resolvera = true;
     private Paint pincelLienzo;
+    private boolean yaSono=false;
+    private int vecesResuleto = 0;
 
     //Instanciacion de clases
     private Fondo signos[];
@@ -51,6 +58,10 @@ public class Lienzo extends View {
         punteroMain.insertarPersonaje(miPersonaje);
         this.miPersonaje = miPersonaje;
         voltear = false;
+
+        soundPool = new SoundPool( 5, AudioManager.STREAM_MUSIC , 0);
+        idGano = soundPool.load(getContext(), R.raw.gano, 0);
+        idPerdio = soundPool.load(getContext(), R.raw.perdio, 0);
 
         pincelLienzo = new Paint();
 
@@ -198,9 +209,13 @@ public class Lienzo extends View {
             }
 
             if(ganador){
-                //c.drawBitmap();
+                //c.drawBitmap();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
                 c.drawBitmap(letreroGanador, c.getWidth()/2,0, paintTexto);
+                if(yaSono == false) {
+                    soundPool.play(idGano, 1, 1, 1, 0, 1);
+                }
                 punteroMain.tenemosGanador();
+                yaSono = true;
             }
 
             if(error){
@@ -243,10 +258,13 @@ public class Lienzo extends View {
                             puntero = personajes[i];
                             puntero.voltearPersonaje(!puntero.getVoltear());
                             if(resolvera) {
+                                vecesResuleto++;
                                 puntero = personajes[i];
-                                punteroMain.resolver(puntero.getIdentificador());
+                                punteroMain.resolver(puntero.getIdentificador(), vecesResuleto);
                                 indicacion = false;
                                 resolvera = false;
+                                if(vecesResuleto == 3)
+                                    vecesResuleto = 0;
                             }
                             i = personajes.length;
                                 //break; cualquiera de las dos opciones está bien
